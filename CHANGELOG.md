@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3.0
+
+- Improve datetime formats in plots
+- Improve rendering to hide charts that are not on screen
+- Introduce show_thresholds variable to toggle rendering thresholds
+- Handle configured backend names in lowercase
+- Add more debug logging
+
 ## v0.2.2
 
 - Fix ellipsis in error messages
