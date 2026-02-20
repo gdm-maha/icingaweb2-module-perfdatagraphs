@@ -323,7 +323,7 @@
                           : true;
                     // See if there are series options from the last autorefresh
                     // if so we use them, otherwise the default.
-                    let show = this.currentSeriesShow[idx] ?? defaultShow;
+                    let show = this.currentSeriesShow[idx+1] ?? defaultShow;
                     // Get the style either from the dataset or from CSS
                     let stroke = dataset.stroke ?? valueColor;
                     let fill = dataset.fill ?? this.ensureRgba(valueColor, 0.3);
