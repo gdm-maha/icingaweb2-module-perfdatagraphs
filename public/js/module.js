@@ -293,6 +293,7 @@
                     formatYFunction = (u, vals, space) => vals.map(v => this.formatTimeSeconds(v));
                     formatLegendFunction = (u, rawValue) => rawValue == null ? '' : this.formatTimeSeconds(rawValue) + ' (' + rawValue + ')';
                     break;
+                case 'percent':
                 case 'percentage':
                     formatYFunction = (u, vals, space) => vals.map(v => this.formatPercentage(v));
                     formatLegendFunction = (u, rawValue) => rawValue == null ? '' : this.formatPercentage(rawValue) + ' (' + rawValue + ')';
