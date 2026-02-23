@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.1
+
+- Fix percent unit not being formated
+- Fix toggle show not surviving autorefresh
+
 ## v0.3.0
 
 - Improve datetime formats in plots
