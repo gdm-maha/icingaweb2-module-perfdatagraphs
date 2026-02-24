@@ -40,7 +40,7 @@ class QuickActions extends BaseHtmlElement
 
         $configuredRanges = $this->getConfigTimeranges();
 
-        if (count($configuredRanges) > 1) {
+        if (count($configuredRanges) >= 1) {
             $this->timeranges = $configuredRanges;
         }
     }
