@@ -13,6 +13,7 @@ The data is fetched by a "backend module", at least one backend module also need
 * [Graphite backend](https://github.com/NETWAYS/icingaweb2-module-perfdatagraphs-graphite)
 * [Influxdb v1 backend](https://github.com/NETWAYS/icingaweb2-module-perfdatagraphs-influxdbv1)
 * [Influxdb v2 backend](https://github.com/NETWAYS/icingaweb2-module-perfdatagraphs-influxdbv2)
+* [Prometheus backend](https://github.com/NETWAYS/icingaweb2-module-perfdatagraphs-prometheus)
 * [Write your own backend](doc/20-PerfdataSourceHook.md)
 
 This module aims to be a "batteries included" and opinionated solution.
