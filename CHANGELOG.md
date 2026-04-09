@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.2
+
+- Fix custom timeranges not being applied
+- Fix Monitoring hook being applied when IcingaDB is used
+
 ## v0.3.1
 
 - Fix percent unit not being formated
