@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.4.0
+
+- Change default render behavior to only show three charts and add a link to the rest.
+  This avoids the page being overloaded by charts.
+- Add dedicated page to show all charts for a given host/service
+- Add check_intervall to PerfdataRequest
+
 ## v0.3.2
 
 - Fix custom timeranges not being applied
