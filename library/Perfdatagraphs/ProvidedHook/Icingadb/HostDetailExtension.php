@@ -96,17 +96,22 @@ class HostDetailExtension extends HostDetailExtensionHook
             return $err;
         }
 
+        $headline = $this->translate('Performance Data Graph');
+        $header = Html::tag('h2', $headline);
+
         $link = new Link(
             $this->translate('Show all performance data graphs'),
             Url::fromPath('perfdatagraphs/graphs')->addParams([
                 'host' => $hostName,
                 'service' => $serviceName,
                 'checkcommand' => $checkCommandName,
-                'ishostcheck' => 'true'
+                'ishostcheck' => 'true',
+                'perfdatagraphs.headline' => $headline
             ]),
         );
 
         $d = Html::tag('div');
+        $d->add($header);
         $d->add($chart);
         $d->add($link);
 

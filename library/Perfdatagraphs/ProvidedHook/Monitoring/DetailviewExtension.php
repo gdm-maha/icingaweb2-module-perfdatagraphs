@@ -103,6 +103,9 @@ class DetailviewExtension extends DetailviewExtensionHook
 
         $isHostCheck = $isHostCheck === true ? 'true' : 'false';
 
+        $headline = $this->translate('Performance Data Graph');
+        $header = Html::tag('h2', $headline);
+
         $link = new Link(
             $this->translate('Show all performance data graphs'),
             Url::fromPath('perfdatagraphs/graphs')->addParams([
@@ -110,10 +113,12 @@ class DetailviewExtension extends DetailviewExtensionHook
                 'service' => $serviceName,
                 'checkcommand' => $checkCommandName,
                 'ishostcheck' => $isHostCheck,
+                'perfdatagraphs.headline' => $headline
             ]),
         );
 
         $d = Html::tag('div');
+        $d->add($header);
         $d->add($chart);
         $d->add($link);
 

@@ -14,6 +14,8 @@ HTTP parameters are used to managed what is rendered:
 | `ishostcheck` | is this a Host or Service Check that is requested  |
 | `perfdatagraphs.duration` | duration for which to fetch the data for in PHP's [DateInterval](https://www.php.net/manual/en/class.dateinterval.php) format (e.g. PT12H, P1D, P1Y) |
 | `label` | (optional) Name of a specific performance data label to render. Can be used multiple times |
+| `perfdatagraphs.duration` | duration for which to fetch the data for in PHP's [DateInterval](https://www.php.net/manual/en/class.dateinterval.php) format (e.g. PT12H, P1D, P1Y) |
+| `perfdatagraphs.headline` | Headline for the page. |
 
 Example:
 
@@ -24,5 +26,6 @@ http://icingaweb2.internal/perfdatagraphs/graphs
  &checkcommand=http
  &ishostcheck=false
  &perfdatagraphs.duration=P1D
+ &perfdatagraphs.headline=Example Host HTTP Service
  &label=time&label=size
 ```

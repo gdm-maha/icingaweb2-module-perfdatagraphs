@@ -73,11 +73,6 @@ trait PerfdataChart
         // We create our own collapsible control because we might want to identify it in the JS
         $chartsControl = HtmlElement::create('div', ['class' => 'perfdata-charts-container-control', 'id' => $elemID . '-control']);
 
-        // Add a headline and all other elements to our element.
-        $header = Html::tag('h2', $this->translate('Performance Data Graph'));
-
-        $main->add($header);
-
         // Load the module's configuration.
         $config = ModuleConfig::getConfigWithDefaults();
 

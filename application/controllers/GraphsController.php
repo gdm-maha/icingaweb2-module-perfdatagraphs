@@ -57,6 +57,7 @@ class GraphsController extends CompatController
         $config = ModuleConfig::getConfigWithDefaults();
         $defaultDuration = $config['default_timerange'];
         $duration = $this->params->get('perfdatagraphs.duration', $defaultDuration);
+        $headline = $this->params->get('perfdatagraphs.headline', $this->translate('Performance Data Graph'));
 
         // Retrieve the URL parameters.
         $hostName = $this->params->getRequired('host');
@@ -69,6 +70,9 @@ class GraphsController extends CompatController
 
         // Transform the URL param into a boolean just because it is easier to work with
         $isHostCheck = $isHostCheck === 'true' ? true : false;
+
+        $header = Html::tag('h2', $headline);
+        $this->addContent($header);
 
         if (Module::exists('icingadb') && IcingadbSupport::useIcingaDbAsBackend()) {
             Logger::debug('Used IcingaDB as database backend');
