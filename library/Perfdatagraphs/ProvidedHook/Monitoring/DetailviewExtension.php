@@ -29,11 +29,13 @@ class DetailviewExtension extends DetailviewExtensionHook
             $serviceName = $object->host_check_command;
             $hostName = $object->getName();
             $checkCommandName = $object->host_check_command;
+            $checkInterval = intval($object->host_check_interval);
             $isHostCheck = true;
         } elseif ($object instanceof Service) {
             $serviceName = $object->getName();
             $hostName = $object->getHost()->getName();
             $checkCommandName = $object->check_command;
+            $checkInterval = intval($object->service_check_interval);
         } else {
             // Unecessary but just to be safe.
             return Html::tag('div');
@@ -79,7 +81,16 @@ class DetailviewExtension extends DetailviewExtensionHook
         }
 
         $source = new PerfdataSource($config, $hook);
-        $request = new PerfdataRequest($hostName, $serviceName, $checkCommandName, $duration, $isHostCheck, $metricsToInclude, $metricsToExclude);
+        $request = new PerfdataRequest(
+            hostName: $hostName,
+            serviceName: $serviceName,
+            checkCommand: $checkCommandName,
+            checkInterval: $checkInterval,
+            duration: $duration,
+            isHostCheck: $isHostCheck,
+            includeMetrics: $metricsToInclude,
+            excludeMetrics: $metricsToExclude
+        );
 
         $customVarsMetrics = $cvh->getPerfdataGraphsMetricsForObject($object);
 
@@ -91,7 +102,7 @@ class DetailviewExtension extends DetailviewExtensionHook
         }
 
         // When there are explicit includes/excludes we show all graphs, otherwise just some
-        $limit = (count($metricsToInclude) > 0 || count($metricsToExclude) > 0) ? -1 : 3;
+        $limit = (count($metricsToInclude) > 0 || count($metricsToExclude) > 0) ? -1 : $config['minimum_chart_count'];
         $chart = $this->createChart(request: $request, response: $response, limit: $limit);
 
         if (empty($chart)) {

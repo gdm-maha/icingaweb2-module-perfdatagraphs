@@ -48,11 +48,13 @@ class ObjectDetailsTab extends ObjectDetailsTabHook
             $serviceName = $object->host_check_command;
             $hostName = $object->getName();
             $checkCommandName = $object->host_check_command;
+            $checkInterval = intval($object->host_check_interval);
             $isHostCheck = true;
         } elseif ($object instanceof Service) {
             $serviceName = $object->getName();
             $hostName = $object->getHost()->getName();
             $checkCommandName = $object->check_command;
+            $checkInterval = intval($object->service_check_interval);
         } else {
             return Html::tag('div');
         }
@@ -81,15 +83,29 @@ class ObjectDetailsTab extends ObjectDetailsTabHook
             return $this->addError($this->translate('No hook configured'));
         }
 
+        $metricsToExclude = [];
+        if ($customvars[$cvh::CUSTOM_VAR_CONFIG_EXCLUDE] ?? false) {
+            $metricsToExclude = $customvars[$cvh::CUSTOM_VAR_CONFIG_EXCLUDE];
+        }
+
         $source = new PerfdataSource($config, $hook);
-        $newRequest = new PerfdataRequest($hostName, $serviceName, $checkCommandName, $duration, $isHostCheck, [], []);
+        $perfdatarequest = new PerfdataRequest(
+            hostName: $hostName,
+            serviceName: $serviceName,
+            checkCommand: $checkCommandName,
+            checkInterval: $checkInterval,
+            duration: $duration,
+            isHostCheck: $isHostCheck,
+            includeMetrics: [],
+            excludeMetrics: $metricsToExclude
+        );
 
         $customVarsMetrics = $cvh->getPerfdataGraphsMetricsForObject($object);
 
-        $response = $source->fetch($newRequest, $customVarsMetrics);
+        $response = $source->fetch($perfdatarequest, $customVarsMetrics);
 
         $limit = -1;
-        $chart = $this->createChart(request: $newRequest, response: $response, filter: $labels, limit: $limit);
+        $chart = $this->createChart(request: $perfdatarequest, response: $response, filter: $labels, limit: $limit);
 
         if (empty($chart)) {
             return $this->addError($this->translate('Chart could not be rendered'));

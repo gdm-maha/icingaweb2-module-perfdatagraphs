@@ -46,12 +46,16 @@ class Tab extends TabHook
         if ($object instanceof Host) {
             $serviceName = $object->checkcommand_name;
             $isHostCheck = true;
-            $checkcommandName = $object->checkcommand_name;
+            $checkCommandName = $object->checkcommand_name;
+            $checkInterval = intval($object->check_interval);
             $hostName = $object->name;
         } elseif ($object instanceof Service) {
             $serviceName = $object->name;
-            $checkcommandName = $object->checkcommand_name;
+            $checkCommandName = $object->checkcommand_name;
+            $checkInterval = intval($object->check_interval);
             $hostName = $object->host->name;
+        } else {
+            return [];
         }
 
         $request = Icinga::app()->getRequest();
@@ -83,8 +87,22 @@ class Tab extends TabHook
             return $content;
         }
 
+        $metricsToExclude = [];
+        if ($customvars[$cvh::CUSTOM_VAR_CONFIG_EXCLUDE] ?? false) {
+            $metricsToExclude = $customvars[$cvh::CUSTOM_VAR_CONFIG_EXCLUDE];
+        }
+
         $source = new PerfdataSource($config, $hook);
-        $request = new PerfdataRequest($hostName, $serviceName, $checkcommandName, $duration, $isHostCheck, [], []);
+        $request = new PerfdataRequest(
+            hostName: $hostName,
+            serviceName: $serviceName,
+            checkCommand: $checkCommandName,
+            checkInterval: $checkInterval,
+            duration: $duration,
+            isHostCheck: $isHostCheck,
+            includeMetrics: [],
+            excludeMetrics: $metricsToExclude,
+        );
 
         $customVarsMetrics = $cvh->getPerfdataGraphsMetricsForObject($object);
 

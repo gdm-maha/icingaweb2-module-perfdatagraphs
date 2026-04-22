@@ -31,6 +31,7 @@ class HostDetailExtension extends HostDetailExtensionHook
         $serviceName = $host->checkcommand_name ?? '';
         $hostName = $host->name ?? '';
         $checkCommandName = $host->checkcommand_name ?? '';
+        $checkInterval = $host->check_interval;
 
         $cvh = new IcingaObjectHelper();
         $customvars = $cvh->getPerfdataGraphsConfigForObject($host);
@@ -74,7 +75,16 @@ class HostDetailExtension extends HostDetailExtensionHook
         }
 
         $source = new PerfdataSource($config, $hook);
-        $request = new PerfdataRequest($hostName, $serviceName, $checkCommandName, $duration, $isHostCheck, $metricsToInclude, $metricsToExclude);
+        $request = new PerfdataRequest(
+            hostName: $hostName,
+            serviceName: $serviceName,
+            checkCommand: $checkCommandName,
+            checkInterval: $checkInterval,
+            duration: $duration,
+            isHostCheck: $isHostCheck,
+            includeMetrics: $metricsToInclude,
+            excludeMetrics: $metricsToExclude
+        );
 
         $customVarsMetrics = $cvh->getPerfdataGraphsMetricsForObject($host);
 
@@ -86,7 +96,7 @@ class HostDetailExtension extends HostDetailExtensionHook
         }
 
         // When there are explicit includes/excludes we show all graphs, otherwise just some
-        $limit = (count($metricsToInclude) > 0 || count($metricsToExclude) > 0) ? -1 : 3;
+        $limit = (count($metricsToInclude) > 0 || count($metricsToExclude) > 0) ? -1 : $config['minimum_chart_count'];
         $chart = $this->createChart(request: $request, response: $response, limit: $limit);
 
         if (empty($chart)) {
