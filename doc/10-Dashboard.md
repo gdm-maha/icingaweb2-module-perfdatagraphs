@@ -16,9 +16,9 @@ HTTP parameters are used to managed what is rendered:
 
 | Parameter  | Function |
 |---------|--------|
-| `host` | Name of the Icinga host |
-| `service` | Name of the Icinga service |
-| `label` | (optional) Name of a specific performance data label to render. Can be used multiple times |
+| `name` | Name of the Icinga service |
+| `host.name` | Name of the Icinga host |
+| `perfdatagraphs.label` | (optional) Name of a specific performance data label to render. Can be used multiple times |
 | `perfdatagraphs.duration` | duration for which to fetch the data for in PHP's [DateInterval](https://www.php.net/manual/en/class.dateinterval.php) format (e.g. PT12H, P1D, P1Y) |
 
 Example:
@@ -27,5 +27,5 @@ Example:
 http://icingaweb2.internal/icingadb/host/graphs
  ?name=example
  &perfdatagraphs.duration=P1D
- &label=time&label=size
+ &perfdatagraphs.label=time&perfdatagraphs.label=size
 ```

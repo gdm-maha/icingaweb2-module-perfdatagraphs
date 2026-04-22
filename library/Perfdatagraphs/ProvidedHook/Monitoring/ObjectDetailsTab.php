@@ -65,7 +65,7 @@ class ObjectDetailsTab extends ObjectDetailsTabHook
         $duration = $request->getParam('perfdatagraphs_duration', $defaultDuration);
 
         // Optional list of labels, when passed only the given perfdata metrics will be shown
-        $labels = $request->getParam('labels', []);
+        $labels = $request->getUrl()->getParams()->getValues("perfdatagraphs.label");
 
         $cvh = new IdoCVH();
 
