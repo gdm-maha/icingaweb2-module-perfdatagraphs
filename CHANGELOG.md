@@ -2,10 +2,11 @@
 
 ## v0.4.0
 
-- Change default render behavior to only show three charts and add a link to the rest.
-  This avoids the page being overloaded by charts.
-- Add dedicated page to show all charts for a given host/service
+- Change default render behavior to only show a limited number charts and add a Tab to all charts.
+  This avoids the page being overloaded by charts. The number of charts on the object page is configurable
+- Add dedicated page to show all charts for a given host/service that can be used in a Dashboard
 - Add check_intervall to PerfdataRequest
+- Fix some missing translation hooks
 
 ## v0.3.2
 
