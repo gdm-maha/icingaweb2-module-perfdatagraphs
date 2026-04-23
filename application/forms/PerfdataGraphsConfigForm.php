@@ -20,7 +20,7 @@ class PerfdataGraphsConfigForm extends ConfigForm
     public function init()
     {
         $this->setName('form_config_perfdatagraphs');
-        $this->setSubmitLabel($this->translate('Save Changes'));
+        $this->setSubmitLabel(t('Save Changes'));
     }
 
     /**
@@ -54,13 +54,14 @@ class PerfdataGraphsConfigForm extends ConfigForm
         });
 
         $callbackValidator->setMessage(
-            $this->translate('Invalid time range. Use the ISO8601 duration format (e.g. PT2H, P1D)'),
+            t('Invalid time range. Use the ISO8601 duration format (e.g. PT2H, P1D)'),
             Zend_Validate_Callback::INVALID_VALUE
         );
 
         $this->addElement('text', 'perfdatagraphs_default_timerange', [
-            'description' => t('Default time range for the "Current" button. Uses the ISO8601 duration format (e.g. PT2H, P1D). Hint: too small a value may result in invalid data'),
-            'label' => 'Default Time Range (ISO8601 duration)',
+            'description' => t('Default time range for the "Current" button. Uses the ISO8601 duration format (e.g. PT2H, P1D).' .
+                               ' Hint: too small a value may result in invalid data'),
+            'label' => t('Default Time Range (ISO8601 duration)'),
             'placeholder' => 'PT12H',
             'validators' => [
                 $callbackValidator
@@ -69,7 +70,8 @@ class PerfdataGraphsConfigForm extends ConfigForm
 
         $this->addElement('number', 'perfdatagraphs_minimum_chart_count', [
             'label' => t('Minimum count of charts to be rendered on the object page'),
-            'description' => t('This number is the minimum count of charts to be rendered on the object page. A negative number will render all charts. This can be overridden with the "metrics_include" variable'),
+            'description' => t('This number is the minimum count of charts to be rendered on the object page.' .
+                               ' A negative number will render all charts. This can be overridden with the "metrics_include" variable'),
             'placeholder' => 3,
         ]);
 
@@ -86,8 +88,8 @@ class PerfdataGraphsConfigForm extends ConfigForm
             'select',
             'perfdatagraphs_default_backend',
             [
-                'label' => $this->translate('Default Data Backend'),
-                'description' => $this->translate('Default backend for the performance data graphs. With only one backend is installed, it will be used by default.'),
+                'label' => t('Default Data Backend'),
+                'description' => t('Default backend for the performance data graphs. With only one backend is installed, it will be used by default.'),
                 'multiOptions' => array_merge($choose, $backends),
                 'class' => 'autosubmit',
             ]
