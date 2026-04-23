@@ -2,15 +2,19 @@
 
 namespace Icinga\Module\Perfdatagraphs\ProvidedHook\Icingadb;
 
+use Icinga\Module\Perfdatagraphs\Common\ModuleConfig;
 use Icinga\Module\Perfdatagraphs\Common\PerfdataChart;
+use Icinga\Module\Perfdatagraphs\Common\PerfdataSource;
 use Icinga\Module\Perfdatagraphs\Icingadb\IcingaObjectHelper;
+use Icinga\Module\Perfdatagraphs\Model\PerfdataRequest;
 
 use Icinga\Module\Icingadb\Hook\ServiceDetailExtensionHook;
 use Icinga\Module\Icingadb\Model\Service;
 
 use ipl\Html\Html;
-use ipl\Html\HtmlString;
+use ipl\Html\HtmlElement;
 use ipl\Html\ValidHtml;
+use ipl\Web\Url;
 
 /**
  * ServiceDetailExtension adds the Chart HTML for Service objects.
@@ -27,6 +31,7 @@ class ServiceDetailExtension extends ServiceDetailExtensionHook
         $serviceName = $service->name ?? '';
         $hostName = $service->host->name ?? '';
         $checkCommandName = $service->checkcommand_name ?? '';
+        $checkInterval = $service->check_interval;
 
         $cvh = new IcingaObjectHelper();
         $customvars = $cvh->getPerfdataGraphsConfigForObject($service);
@@ -38,14 +43,75 @@ class ServiceDetailExtension extends ServiceDetailExtensionHook
 
         $isHostCheck = false;
 
-        // Get the configured element for the service.
-        $chart = $this->createChart($hostName, $serviceName, $checkCommandName, $isHostCheck);
-
-        if (empty($chart)) {
-            // Probably unecessary but just to be safe.
-            return Html::tag('div');
+        // If the object wants the data from a custom backend
+        if ($customvars[$cvh::CUSTOM_VAR_CONFIG_BACKEND] ?? false) {
+            $hook = ModuleConfig::getHookByName($customvars[$cvh::CUSTOM_VAR_CONFIG_BACKEND]);
+        } else {
+            $hook = ModuleConfig::getHook();
+        }
+        // If there is no hook configured we return here.
+        if (empty($hook)) {
+            $err = Html::tag('div');
+            $err->add(HtmlElement::create('p', ['class' => 'line-chart-error preformatted'], $this->translate('No hook configured.')));
+            return $err;
         }
 
-        return HtmlString::create($chart);
+        $metricsToInclude = [];
+        if ($customvars[$cvh::CUSTOM_VAR_CONFIG_INCLUDE] ?? false) {
+            $metricsToInclude = $customvars[$cvh::CUSTOM_VAR_CONFIG_INCLUDE];
+        }
+
+        $metricsToExclude = [];
+        if ($customvars[$cvh::CUSTOM_VAR_CONFIG_EXCLUDE] ?? false) {
+            $metricsToExclude = $customvars[$cvh::CUSTOM_VAR_CONFIG_EXCLUDE];
+        }
+
+        // Load the module's configuration.
+        $config = ModuleConfig::getConfigWithDefaults();
+        $duration = $config['default_timerange'];
+        // When there is a parameter for the duration we use that instead.
+        if (Url::fromRequest()->hasParam('perfdatagraphs.duration')) {
+            $duration = Url::fromRequest()->getParam('perfdatagraphs.duration');
+        }
+
+        $source = new PerfdataSource($config, $hook);
+        $request = new PerfdataRequest(
+            hostName: $hostName,
+            serviceName: $serviceName,
+            checkCommand: $checkCommandName,
+            checkInterval: $checkInterval,
+            duration: $duration,
+            isHostCheck: $isHostCheck,
+            includeMetrics: $metricsToInclude,
+            excludeMetrics: $metricsToExclude
+        );
+
+        $customVarsMetrics = $cvh->getPerfdataGraphsMetricsForObject($service);
+
+        $response = $source->fetch($request, $customVarsMetrics);
+
+        // If the a dataset is set to be highlighted, move it at the top of the array.
+        if ($customvars[$cvh::CUSTOM_VAR_CONFIG_HIGHLIGHT] ?? false) {
+            $response->setDatasetToHighlight($customvars[$cvh::CUSTOM_VAR_CONFIG_HIGHLIGHT] ?? '');
+        }
+
+        // When there are explicit includes/excludes we show all graphs, otherwise just some
+        $limit = (count($metricsToInclude) > 0 || count($metricsToExclude) > 0) ? -1 : $config['minimum_chart_count'];
+        $chart = $this->createChart(request: $request, response: $response, limit: $limit);
+
+        if (empty($chart)) {
+            $err = Html::tag('div');
+            $err->add(HtmlElement::create('p', ['class' => 'line-chart-error preformatted'], $this->translate('Chart could be rendered.')));
+            return $err;
+        }
+
+        $headline = $this->translate('Performance Data Graph');
+        $header = Html::tag('h2', $headline);
+
+        $d = Html::tag('div');
+        $d->add($header);
+        $d->add($chart);
+
+        return $d;
     }
 }

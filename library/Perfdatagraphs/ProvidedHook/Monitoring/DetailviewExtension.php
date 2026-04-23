@@ -2,15 +2,20 @@
 
 namespace Icinga\Module\Perfdatagraphs\ProvidedHook\Monitoring;
 
+use Icinga\Module\Perfdatagraphs\Common\ModuleConfig;
 use Icinga\Module\Perfdatagraphs\Common\PerfdataChart;
+use Icinga\Module\Perfdatagraphs\Common\PerfdataSource;
 use Icinga\Module\Perfdatagraphs\Ido\IcingaObjectHelper;
+use Icinga\Module\Perfdatagraphs\Model\PerfdataRequest;
 
+use Icinga\Module\Monitoring\Hook\DetailviewExtensionHook;
 use Icinga\Module\Monitoring\Object\Host;
 use Icinga\Module\Monitoring\Object\MonitoredObject;
 use Icinga\Module\Monitoring\Object\Service;
-use Icinga\Module\Monitoring\Hook\DetailviewExtensionHook;
 
-use ipl\Html\HtmlString;
+use ipl\Html\Html;
+use ipl\Html\HtmlElement;
+use ipl\Web\Url;
 
 class DetailviewExtension extends DetailviewExtensionHook
 {
@@ -24,14 +29,16 @@ class DetailviewExtension extends DetailviewExtensionHook
             $serviceName = $object->host_check_command;
             $hostName = $object->getName();
             $checkCommandName = $object->host_check_command;
+            $checkInterval = intval($object->host_check_interval);
             $isHostCheck = true;
         } elseif ($object instanceof Service) {
             $serviceName = $object->getName();
             $hostName = $object->getHost()->getName();
             $checkCommandName = $object->check_command;
+            $checkInterval = intval($object->service_check_interval);
         } else {
             // Unecessary but just to be safe.
-            return HtmlString::create('');
+            return Html::tag('div');
         }
 
         $cvh = new IcingaObjectHelper();
@@ -39,17 +46,80 @@ class DetailviewExtension extends DetailviewExtensionHook
 
         // Check if charts are disabled for this object, if so we just return.
         if ($customvars[$cvh::CUSTOM_VAR_CONFIG_DISABLE] ?? false) {
-            return HtmlString::create('');
+            return Html::tag('div');
         }
 
-        // Get the configured element for the host.
-        $chart = $this->createChart($hostName, $serviceName, $checkCommandName, $isHostCheck);
+        // If the object wants the data from a custom backend
+        if ($customvars[$cvh::CUSTOM_VAR_CONFIG_BACKEND] ?? false) {
+            $hook = ModuleConfig::getHookByName($customvars[$cvh::CUSTOM_VAR_CONFIG_BACKEND]);
+        } else {
+            $hook = ModuleConfig::getHook();
+        }
+        // If there is no hook configured we return here.
+        if (empty($hook)) {
+            $err = Html::tag('div');
+            $err->add(HtmlElement::create('p', ['class' => 'line-chart-error preformatted'], $this->translate('No hook configured.')));
+            return $err;
+        }
+
+        // Load the module's configuration.
+        $config = ModuleConfig::getConfigWithDefaults();
+        $duration = $config['default_timerange'];
+        // When there is a parameter for the duration we use that instead.
+        if (Url::fromRequest()->hasParam('perfdatagraphs.duration')) {
+            $duration = Url::fromRequest()->getParam('perfdatagraphs.duration');
+        }
+
+        $metricsToInclude = [];
+        if ($customvars[$cvh::CUSTOM_VAR_CONFIG_INCLUDE] ?? false) {
+            $metricsToInclude = $customvars[$cvh::CUSTOM_VAR_CONFIG_INCLUDE];
+        }
+
+        $metricsToExclude = [];
+        if ($customvars[$cvh::CUSTOM_VAR_CONFIG_EXCLUDE] ?? false) {
+            $metricsToExclude = $customvars[$cvh::CUSTOM_VAR_CONFIG_EXCLUDE];
+        }
+
+        $source = new PerfdataSource($config, $hook);
+        $request = new PerfdataRequest(
+            hostName: $hostName,
+            serviceName: $serviceName,
+            checkCommand: $checkCommandName,
+            checkInterval: $checkInterval,
+            duration: $duration,
+            isHostCheck: $isHostCheck,
+            includeMetrics: $metricsToInclude,
+            excludeMetrics: $metricsToExclude
+        );
+
+        $customVarsMetrics = $cvh->getPerfdataGraphsMetricsForObject($object);
+
+        $response = $source->fetch($request, $customVarsMetrics);
+
+        // If the a dataset is set to be highlighted, move it at the top of the array.
+        if ($customvars[$cvh::CUSTOM_VAR_CONFIG_HIGHLIGHT] ?? false) {
+            $response->setDatasetToHighlight($customvars[$cvh::CUSTOM_VAR_CONFIG_HIGHLIGHT] ?? '');
+        }
+
+        // When there are explicit includes/excludes we show all graphs, otherwise just some
+        $limit = (count($metricsToInclude) > 0 || count($metricsToExclude) > 0) ? -1 : $config['minimum_chart_count'];
+        $chart = $this->createChart(request: $request, response: $response, limit: $limit);
 
         if (empty($chart)) {
-            // Probably unecessary but just to be safe.
-            return HtmlString::create('');
+            $err = Html::tag('div');
+            $err->add(HtmlElement::create('p', ['class' => 'line-chart-error preformatted'], $this->translate('Chart could be rendered.')));
+            return $err;
         }
 
-        return HtmlString::create($chart);
+        $isHostCheck = $isHostCheck === true ? 'true' : 'false';
+
+        $headline = $this->translate('Performance Data Graph');
+        $header = Html::tag('h2', $headline);
+
+        $d = Html::tag('div');
+        $d->add($header);
+        $d->add($chart);
+
+        return $d;
     }
 }
