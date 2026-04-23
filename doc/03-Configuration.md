@@ -154,8 +154,12 @@ The `unit` option can be any string, however, some unit of measurement can be us
 The custom variable `perfdatagraphs_config_metrics_include (array[string])` is used to select specific metrics that
 should be rendered, if not set all metrics are rendered. Wildcards can be used with: `*`.
 
+This will also override the minimum amount the charts being shown on the object's page.
+
 The custom variable `perfdatagraphs_config_metrics_exclude (array[string])` is used to exclude metrics.
 This takes precedence over the include. Wildcards can be used with: `*`.
+
+This will exclude the metric from all pages.
 
 Examples:
 
