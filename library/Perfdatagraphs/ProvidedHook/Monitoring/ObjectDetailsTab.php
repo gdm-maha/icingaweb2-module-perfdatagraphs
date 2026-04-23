@@ -25,12 +25,12 @@ class ObjectDetailsTab extends ObjectDetailsTabHook
 
     public function getName()
     {
-        return "graphs";
+        return 'graphs';
     }
 
     public function getLabel()
     {
-        return "Performance Data Graph";
+        return 'Performance Data Graph';
     }
 
     protected function addError(string $message): HtmlElement
@@ -65,7 +65,7 @@ class ObjectDetailsTab extends ObjectDetailsTabHook
         $duration = $request->getParam('perfdatagraphs_duration', $defaultDuration);
 
         // Optional list of labels, when passed only the given perfdata metrics will be shown
-        $labels = $request->getUrl()->getParams()->getValues("perfdatagraphs.label");
+        $labels = $request->getUrl()->getParams()->getValues('perfdatagraphs.label');
 
         $cvh = new IdoCVH();
 

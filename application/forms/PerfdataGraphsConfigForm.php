@@ -69,7 +69,7 @@ class PerfdataGraphsConfigForm extends ConfigForm
 
         $this->addElement('number', 'perfdatagraphs_minimum_chart_count', [
             'label' => t('Minimum count of charts to be rendered on the object page'),
-            'description' => t('This number is the minimum count of charts to be rendered on the object page. This can be overridden with the "metrics_include" variable'),
+            'description' => t('This number is the minimum count of charts to be rendered on the object page. A negative number will render all charts. This can be overridden with the "metrics_include" variable'),
             'placeholder' => 3,
         ]);
 
