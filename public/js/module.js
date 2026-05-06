@@ -16,6 +16,8 @@
         currentSelect = null;
         currentCursor = null;
         currentSeriesShow = {};
+        // Last clicked metric label for shift click range selection
+        lastMetricClick = null;
 
         constructor(icinga)
         {
@@ -54,6 +56,7 @@
 
             // TODO: The 'rendered' selectors might not yet be optimal.
             this.on('rendered', '#main > .icinga-module, #main > .container', this.rendered, this);
+            this.on('click', '.perfdatagraphs-metric-selector .metric-item', this.onMetricItemClick, this);
         }
 
         /**
@@ -80,6 +83,19 @@
             });
             // Then, reset the existing plots map for the new rendering
             _this.plots = new Map();
+
+            // IcingaWeb2 restores form state after AJAX navigation, which can
+            // leave the metric selector toggle checked (open) even though metrics
+            // are already selected. Force-close it whenever metrics are selected.
+            document.querySelectorAll('.perfdatagraphs-metric-selector').forEach(sel => {
+                const toggle = sel.querySelector('.metric-toggle-cb');
+                if (toggle && sel.querySelectorAll('.metric-items-scroll input:checked').length > 0) {
+                    toggle.checked = false;
+                }
+            });
+
+            // Reset shift click anchor on every render
+            _this.lastMetricClick = null;
 
             // Get the elements we going to render the charts in
             const lineCharts = document.querySelectorAll(CHART_CLASS);
@@ -596,6 +612,43 @@
 
             return nullGaps;
         }
+
+        /**
+         * onMetricItemClick handles clicks on metric selector labels.
+         * Shift click selects/deselects a range of checkboxes between the last
+         * clicked item and the current one.
+         */
+        onMetricItemClick(event)
+        {
+            const _this = event.data.self;
+            const label = event.currentTarget;
+
+            if (event.shiftKey && _this.lastMetricClick !== null) {
+                // Prevent text selection that browsers do on shift-click.
+                event.preventDefault();
+
+                const list = label.closest('.metric-items-scroll');
+                if (list) {
+                    const labels = Array.from(list.querySelectorAll('label.metric-item'));
+                    const lastIdx = labels.indexOf(_this.lastMetricClick);
+                    const currIdx = labels.indexOf(label);
+
+                    if (lastIdx !== -1 && currIdx !== -1) {
+                        // Apply the same checked state as the anchor item.
+                        const anchorCb = _this.lastMetricClick.querySelector('input[type="checkbox"]');
+                        const newState = anchorCb ? anchorCb.checked : true;
+                        const from = Math.min(lastIdx, currIdx);
+                        const to   = Math.max(lastIdx, currIdx);
+                        for (let i = from; i <= to; i++) {
+                            const cb = labels[i].querySelector('input[type="checkbox"]');
+                            if (cb) cb.checked = newState;
+                        }
+                    }
+                }
+            }
+
+            _this.lastMetricClick = label;
+        }    
     }
 
     Icinga.Behaviors.Perfdatagraphs = Perfdatagraphs;
