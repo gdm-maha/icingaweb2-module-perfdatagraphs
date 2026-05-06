@@ -48,6 +48,119 @@ p.line-chart-error {
     text-overflow: ellipsis;
 }
 
+
+/*
+Metric selector: CSS-only collapsible dropdown with checkboxes,
+styled to match IcingaWeb2's flyout dropdown look.
+*/
+.perfdatagraphs-metric-selector {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 1em;
+
+    .metric-toggle-cb {
+        position: absolute;
+        width: 0;
+        height: 0;
+        visibility: hidden;
+    }
+
+    .metric-toggle-label {
+        display: inline-flex;
+        align-items: center;
+        gap: .4em;
+        padding: @vertical-padding @horizontal-padding;
+        border: 1px solid @gray-semilight;
+        .rounded-corners(.25em);
+        background: @body-bg-color;
+        color: @text-color;
+        cursor: pointer;
+        user-select: none;
+        font-size: inherit;
+
+        &::after {
+            content: '\25BE';
+            font-size: .9em;
+            margin-left: .2em;
+        }
+    }
+
+    .metric-toggle-cb:checked ~ .metric-toggle-label::after {
+        content: '\25B4';
+    }
+
+    .metric-checkbox-list {
+        display: none;
+    }
+
+    .metric-toggle-cb:checked ~ .metric-checkbox-list {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        z-index: 200;
+        top: 100%;
+        left: 0;
+        min-width: 14em;
+        max-width: 30em;
+        margin-top: .2em;
+        background: fade(@menu-flyout-bg-color, 92%);
+        border: 1px solid @gray-light;
+        .rounded-corners(.25em);
+        box-shadow: .2em .3em .6em 0 rgba(0,0,0,.3);
+    }
+
+    .metric-items-scroll {
+        overflow-y: auto;
+        max-height: 300px;
+        padding: .3em 0;
+    }
+
+    label.metric-item {
+        display: flex;
+        align-items: center;
+        padding: .3em .75em .3em .5em;
+        cursor: pointer;
+        white-space: nowrap;
+        color: @text-color;
+        user-select: none;
+
+        &:hover {
+            background: @tr-active-color;
+        }
+
+        &:has(input:checked) {
+            color: @icinga-blue;
+        }
+    }
+
+    label.metric-item input[type="checkbox"] {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 1.1em;
+        min-width: 1.1em;
+        height: 1em;
+        margin: 0 .4em 0 0;
+        background: none;
+        border: none;
+        flex-shrink: 0;
+
+        &:checked::before {
+            content: '\2713';
+            display: block;
+            color: @icinga-blue;
+            font-weight: bold;
+            line-height: 1;
+        }
+    }
+
+    .metric-selector-submit-row {
+        display: block;
+        padding: .4em .5em;
+        border-top: 1px solid @gray-semilight;
+        flex-shrink: 0;
+    }
+}
+
 /*
 The spinner for when data is being fetched
 */
