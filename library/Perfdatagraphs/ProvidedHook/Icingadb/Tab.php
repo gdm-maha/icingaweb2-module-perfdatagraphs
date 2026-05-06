@@ -7,6 +7,7 @@ use Icinga\Module\Perfdatagraphs\Common\PerfdataChart;
 use Icinga\Module\Perfdatagraphs\Common\PerfdataSource;
 use Icinga\Module\Perfdatagraphs\Icingadb\IcingaObjectHelper;
 use Icinga\Module\Perfdatagraphs\Model\PerfdataRequest;
+use Icinga\Module\Perfdatagraphs\Widget\MetricSelector;
 
 use Icinga\Module\Icingadb\Hook\TabHook;
 use Icinga\Module\Icingadb\Model\Host;
@@ -14,6 +15,7 @@ use Icinga\Module\Icingadb\Model\Service;
 
 use Icinga\Application\Icinga;
 
+use ipl\Web\Url;
 use ipl\Html\Html;
 use ipl\Html\HtmlElement;
 use ipl\Html\HtmlString;
@@ -66,9 +68,21 @@ class Tab extends TabHook
         // Retrieve the URL parameters.
         $duration = $request->getParam('perfdatagraphs_duration', $defaultDuration);
 
-        // Optional list of labels, when passed only the given perfdata metrics will be shown
-        $labels = $request->getUrl()->getParams()->getValues('perfdatagraphs.label');
+        // Optional list of labels, when passed only the given perfdata metrics will be shown.
+        // Support both repeated params (?perfdatagraphs.label=a&perfdatagraphs.label=b) and
+        // comma-separated single param (?perfdatagraphs.label=a,b) used by dashboard tile links.
+        $labels = [];
+        foreach ($request->getUrl()->getParams()->getValues('perfdatagraphs.label') as $raw) {
+            foreach (explode(',', $raw) as $label) {
+                $label = trim($label);
+                if ($label !== '') {
+                    $labels[] = $label;
+                }
+            }
+        }
 
+        // When noselector=1 the metric selector UI is suppressed (used by dashboard tiles).
+        $noSelector = $request->getUrl()->getParam('perfdatagraphs.noselector', '0') === '1';
         $cvh = new IcingaObjectHelper();
 
         $customvars = $cvh->getPerfdataGraphsConfigForObject($object);
@@ -108,13 +122,24 @@ class Tab extends TabHook
 
         $response = $source->fetch($request, $customVarsMetrics);
 
-        $limit = -1;
-        $chart = $this->createChart(request: $request, response: $response, filter: $labels, limit: $limit);
-        $content[] = HtmlString::create($chart);
+        // Collect all available metric labels from the response
+        $availableLabels = [];
+        foreach ($response->getDatasets() as $dataset) {
+            $availableLabels[] = $dataset->getTitle();
+        }
 
-        if (empty($chart)) {
-            $content[] = $this->addError($this->translate('Chart could not be rendered'));
-            return $content;
+        if (!empty($availableLabels) && !$noSelector) {
+            $content[] = new MetricSelector($availableLabels, $labels, Url::fromRequest());
+        }
+
+        if (!empty($labels)) {
+            // Render charts for the selected labels.
+            $chart = $this->createChart(request: $request, response: $response, filter: $labels, limit: -1);
+            $content[] = HtmlString::create($chart);
+        } elseif (empty($availableLabels)) {
+            // No datasets at all, fall through to standard empty/error rendering.
+            $chart = $this->createChart(request: $request, response: $response, filter: $labels, limit: -1);
+            $content[] = HtmlString::create($chart);
         }
 
         return $content;
