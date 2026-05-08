@@ -82,7 +82,10 @@ class Tab extends TabHook
         }
 
         // When noselector=1 the metric selector UI is suppressed (used by dashboard tiles).
-        $noSelector = $request->getUrl()->getParam('perfdatagraphs.noselector', '0') === '1';
+        // Do not suppress it for an empty selection, otherwise the tab returns no
+        // content and Icinga falls back to looking for a default view script.
+        $noSelector = $request->getUrl()->getParam('perfdatagraphs.noselector', '0') === '1'
+            && ! empty($labels);
         $cvh = new IcingaObjectHelper();
 
         $customvars = $cvh->getPerfdataGraphsConfigForObject($object);
