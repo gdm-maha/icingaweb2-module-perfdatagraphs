@@ -103,7 +103,8 @@ class MetricSelector extends BaseHtmlElement
         $checkboxList->add($itemsWrapper);
         $checkboxList->add(
             Html::tag('div', ['class' => 'metric-selector-submit-row icinga-controls'],
-                Html::tag('button', ['type' => 'submit', 'name' => 'undefined'], $this->translate('Show'))
+                Html::tag('button', ['type' => 'submit', 'name' => 'undefined'],
+                    $this->translate('Show'))
             )
         );
 
